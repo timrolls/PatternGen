@@ -1,5 +1,11 @@
 /* Pattern Generator  */
 
+import hype.*;
+import hype.extended.behavior.*;
+import hype.extended.colorist.*;
+import hype.extended.layout.*;
+import hype.interfaces.*;
+
 import processing.pdf.*;
 
 boolean record = false;
@@ -8,6 +14,8 @@ boolean paused = false;
 HDrawablePool pool;
 HDrawablePool pool2;
 HColorPool colors;
+HGridLayout  layout;
+HGridLayout  layoutSmall;
 
 int cellSize = 400;
 
@@ -20,8 +28,21 @@ void setup() {
     .add(#FFFFFF) 
     .add(#0C3654, 2)
     .add(#10B36B, 2) 
-
     ;	
+
+  layout = new HGridLayout()
+    .startX(0)
+    .startY(0)
+    .spacing(cellSize, cellSize)
+    .cols(4)
+    ;
+
+  layoutSmall =  new HGridLayout()
+    .startX(cellSize/2)
+    .startY(cellSize/2)
+    .spacing(cellSize, cellSize)
+    .cols(4)
+    ;
 
   pool = new HDrawablePool(16); // big ones
   pool.autoAddToStage()
@@ -37,13 +58,7 @@ void setup() {
     .add(new HShape ("9.svg"))
     .add(new HShape ("10.svg"))
 
-    .layout (
-    new HGridLayout()
-    .startX(0)
-    .startY(0)
-    .spacing(cellSize, cellSize)
-    .cols(4)
-    )
+    .layout (layout)
 
     .onCreate (
     new HCallback() {
@@ -80,13 +95,7 @@ void setup() {
     .add(new HShape ("9.svg"))
     .add(new HShape ("10.svg"))
 
-    .layout (
-    new HGridLayout()
-    .startX(cellSize/2)
-    .startY(cellSize/2)
-    .spacing(cellSize, cellSize)
-    .cols(4)
-    )
+    .layout ( layoutSmall )
 
     .onCreate (
     new HCallback() {
@@ -116,7 +125,6 @@ void draw() {
 
 // +        = redraw() advances 1 iteration 
 // r        = render to PDF
-// c        = recolor 
 
 void keyPressed() {
   if (key == ' ') {
@@ -129,7 +137,6 @@ void keyPressed() {
     }
   }
 
-
   if (key == 'r') {
     record = true;
     saveVector();
@@ -139,11 +146,12 @@ void keyPressed() {
 
   if (key == '+') {
     pool.drain();
-    //layout.resetIndex();
+    pool2.drain();
+    layout.resetIndex();
+    layoutSmall.resetIndex();
     pool.shuffleRequestAll();
+    pool2.shuffleRequestAll();
 
-    pool.requestAll();
-    pool2.requestAll();
     H.drawStage();
   }
 }
