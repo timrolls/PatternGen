@@ -1,4 +1,7 @@
-/* Pattern Generator  */
+/* Pattern Generator  
+ // + = redraw() advances 1 iteration 
+ // r = render to PDF/png
+ */
 
 import hype.*;
 import hype.extended.behavior.*;
@@ -15,14 +18,29 @@ HDrawablePool pool;
 HDrawablePool pool2;
 HColorPool colors;
 HGridLayout  layout;
-HGridLayout  layoutSmall;
+HGridLayout  layout2;
 
 int cellSize = 400;
+int cols =6;
+
+int numFiles;
+String shortPath = "data";
 
 void setup() {
-  size(1200, 1200);
+  size(1920, 1200);
+  surface.setResizable(true);
   H.init(this);
   smooth();
+
+  setupUI(); // set up CP5 UI
+
+  //Set up directory loading
+  initDirectoryList();
+
+  String loadPath = (sketchPath() + "\\"+shortPath) ;
+  String[] loadedFiles = listFileNames(loadPath);
+  //printArray(loadedFiles); //For debugging
+  numFiles = loadedFiles.length;
 
   colors = new HColorPool()
     .add(#FFFFFF) 
@@ -34,31 +52,23 @@ void setup() {
     .startX(0)
     .startY(0)
     .spacing(cellSize, cellSize)
-    .cols(4)
+    .cols(cols)
     ;
-
-  layoutSmall =  new HGridLayout()
+  //nested layout for diamond offset
+  layout2 =  new HGridLayout()
     .startX(cellSize/2)
     .startY(cellSize/2)
     .spacing(cellSize, cellSize)
-    .cols(4)
+    .cols(cols)
     ;
 
-  pool = new HDrawablePool(16); // big ones
-  pool.autoAddToStage()
+  pool = new HDrawablePool(24); // big ones
 
-    .add(new HShape ("1.svg"))
-    .add(new HShape ("2.svg"))
-    .add(new HShape ("3.svg"))
-    .add(new HShape ("4.svg"))
-    .add(new HShape ("5.svg"))
-    .add(new HShape ("6.svg"))
-    .add(new HShape ("7.svg"))
-    .add(new HShape ("8.svg"))
-    .add(new HShape ("9.svg"))
-    .add(new HShape ("10.svg"))
+  for (int i=0; i<numFiles; i++) {
+    pool.autoAddToStage().add(new HShape (loadedFiles[i]));
+  }
 
-    .layout (layout)
+  pool.layout (layout)
 
     .onCreate (
     new HCallback() {
@@ -82,20 +92,12 @@ void setup() {
     ;
 
 
-  pool2 = new HDrawablePool(16); // little ones
-  pool2.autoAddToStage()
-    .add(new HShape ("1.svg"))
-    .add(new HShape ("2.svg"))
-    .add(new HShape ("3.svg"))
-    .add(new HShape ("4.svg"))
-    .add(new HShape ("5.svg"))
-    .add(new HShape ("6.svg"))
-    .add(new HShape ("7.svg"))
-    .add(new HShape ("8.svg"))
-    .add(new HShape ("9.svg"))
-    .add(new HShape ("10.svg"))
+  pool2 = new HDrawablePool(24); // little ones
+  for (int i=0; i<numFiles; i++) {
+    pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
+  }
 
-    .layout ( layoutSmall )
+    pool2.layout ( layout2 )
 
     .onCreate (
     new HCallback() {
@@ -148,7 +150,7 @@ void keyPressed() {
     pool.drain();
     pool2.drain();
     layout.resetIndex();
-    layoutSmall.resetIndex();
+    layout2.resetIndex();
     pool.shuffleRequestAll();
     pool2.shuffleRequestAll();
 
