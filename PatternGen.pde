@@ -20,15 +20,23 @@ HColorPool colors;
 HGridLayout  layout;
 HGridLayout  layout2;
 
-int cellSize = 400;
 int cols =6;
+int cellSize;
 
 int numFiles;
 String shortPath = "data";
 
+int w, h;
+String ws = "";
+
 void setup() {
   size(1920, 1200);
   surface.setResizable(true);
+  surface.setSize(displayWidth, displayHeight);
+  w = width;
+  h = height;
+  registerMethod("pre", this); //register pre to run before draw
+
   H.init(this);
   smooth();
 
@@ -37,10 +45,12 @@ void setup() {
   //Set up directory loading
   initDirectoryList();
 
-  String loadPath = (sketchPath() + "\\"+shortPath) ;
+  String loadPath = (sketchPath() + "\\"+shortPath) ; // does not work declared globally
   String[] loadedFiles = listFileNames(loadPath);
   //printArray(loadedFiles); //For debugging
   numFiles = loadedFiles.length;
+
+  cellSize = width/cols;
 
   colors = new HColorPool()
     .add(#FFFFFF) 
@@ -97,7 +107,7 @@ void setup() {
     pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
   }
 
-    pool2.layout ( layout2 )
+  pool2.layout ( layout2 )
 
     .onCreate (
     new HCallback() {
@@ -118,11 +128,38 @@ void setup() {
 
   .requestAll()
     ;
+}
 
-  H.drawStage();
+//catch window resize
+void pre() {
+  if (w != width || h != height) {
+    // Sketch window has resized
+    w = width;
+    h = height;
+    ws = "Size = " +w + " x " + h + " pixels";
+    // Do what you need to do here
+
+    cellSize = width/cols;
+
+    layout.startX(0).startY(0)
+      .spacing(cellSize, cellSize)
+      .cols(cols)
+      ;
+    //nested layout for diamond offset
+    layout2
+      .startX(cellSize/2)
+      .startY(cellSize/2)
+      .spacing(cellSize, cellSize)
+      .cols(cols)
+      ;
+
+    resetPools();
+
+  }
 }
 
 void draw() {
+  H.drawStage();
 }
 
 // +        = redraw() advances 1 iteration 
@@ -147,14 +184,7 @@ void keyPressed() {
   }
 
   if (key == '+') {
-    pool.drain();
-    pool2.drain();
-    layout.resetIndex();
-    layout2.resetIndex();
-    pool.shuffleRequestAll();
-    pool2.shuffleRequestAll();
-
-    H.drawStage();
+    resetPools();
   }
 }
 
@@ -170,4 +200,16 @@ void saveVector() {
   }
 
   endRecord();
+}
+
+void resetPools() {
+
+  pool.drain();
+  pool2.drain();
+  layout.resetIndex();
+  layout2.resetIndex();
+  pool.shuffleRequestAll();
+  pool2.shuffleRequestAll();
+
+  H.drawStage();
 }
