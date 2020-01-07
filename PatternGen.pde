@@ -1,6 +1,6 @@
 /* Pattern Generator  
- // + = redraw() advances 1 iteration 
- // r = render to PDF/png
+ // space = advances 1 iteration 
+ // s = save to PDF/png
  */
 
 import hype.*;
@@ -20,8 +20,9 @@ HColorPool colors;
 HGridLayout  layout;
 HGridLayout  layout2;
 
-int cols =6;
+int cols =8;
 int cellSize;
+int elements = 32; //number of elements per shape pool
 
 int numFiles;
 String shortPath = "data";
@@ -50,13 +51,21 @@ void setup() {
   //printArray(loadedFiles); //For debugging
   numFiles = loadedFiles.length;
 
-  cellSize = width/cols;
+  cellSize = width/(cols-1);
+  
+  String[] loadedColors = loadStrings("colors.txt");
+  int numColors = loadedColors.length;
+  
 
-  colors = new HColorPool()
-    .add(#FFFFFF) 
-    .add(#0C3654, 2)
-    .add(#10B36B, 2) 
-    ;	
+  colors = new HColorPool();
+    //.add(#FFFFFF) 
+    //.add(#0C3654, 2)
+    //.add(#10B36B, 2) 
+    //;	
+    
+   for (int i=0; i<numColors; i++) {
+    colors.add(unhex(loadedColors[i])| 0xff000000);
+  }
 
   layout = new HGridLayout()
     .startX(0)
@@ -72,7 +81,7 @@ void setup() {
     .cols(cols)
     ;
 
-  pool = new HDrawablePool(24); // big ones
+  pool = new HDrawablePool(elements+cols); // big ones
 
   for (int i=0; i<numFiles; i++) {
     pool.autoAddToStage().add(new HShape (loadedFiles[i]));
@@ -102,7 +111,7 @@ void setup() {
     ;
 
 
-  pool2 = new HDrawablePool(24); // little ones
+  pool2 = new HDrawablePool(elements); // little ones
   for (int i=0; i<numFiles; i++) {
     pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
   }
@@ -139,11 +148,11 @@ void pre() {
     ws = "Size = " +w + " x " + h + " pixels";
     // Do what you need to do here
 
-    cellSize = width/cols;
+    cellSize = width/(cols-1);
 
     layout.startX(0).startY(0)
       .spacing(cellSize, cellSize)
-      .cols(cols)
+      .cols(cols+1)
       ;
     //nested layout for diamond offset
     layout2
@@ -166,7 +175,7 @@ void draw() {
 // r        = render to PDF
 
 void keyPressed() {
-  if (key == ' ') {
+  if (key == '+') {
     if (paused) {
       loop();
       paused = false;
@@ -176,14 +185,14 @@ void keyPressed() {
     }
   }
 
-  if (key == 'r') {
+  if (key == 's') {
     record = true;
     saveVector();
     H.drawStage();
     saveFrame("png/render_####.png");
   }
 
-  if (key == '+') {
+  if (key == ' ') {
     resetPools();
   }
 }
