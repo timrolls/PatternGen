@@ -1,3 +1,5 @@
+//Reads file names recursively from a folder
+
 import java.util.Date;
 
 boolean printFileInfo = false;

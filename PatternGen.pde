@@ -1,6 +1,11 @@
-/* Pattern Generator  
- // space = advances 1 iteration 
- // s = save to PDF/png
+/*  Pattern Generator  
+ 
+ Arranges .svg files from the /data folder into a grid.
+ Uses colors with weighting from colors.txt to color the geometry
+ 
+ Keys:
+ space = advances 1 iteration 
+ s = save to PDF/png
  */
 
 import hype.*;
@@ -17,15 +22,17 @@ boolean paused = false;
 HDrawablePool pool;
 HDrawablePool pool2;
 HColorPool colors;
-HGridLayout  layout;
+HHexLayout  layout;
 HGridLayout  layout2;
 
-int cols =8;
-int cellSize;
-int elements = 32; //number of elements per shape pool
+int cols =40;
+int cellSize=20;
+int tileSize= 35;
+int elements = 128; //number of elements per shape pool
 
 int numFiles;
 String shortPath = "data";
+String[] loadedFiles;
 
 int w, h;
 String ws = "";
@@ -47,47 +54,45 @@ void setup() {
   initDirectoryList();
 
   String loadPath = (sketchPath() + "\\"+shortPath) ; // does not work declared globally
-  String[] loadedFiles = listFileNames(loadPath);
+  loadedFiles = listFileNames(loadPath);
   //printArray(loadedFiles); //For debugging
   numFiles = loadedFiles.length;
 
-  cellSize = width/(cols-1);
-  
+  //cellSize = width/(cols-1);
+
+  //Read colors and weights from text file
   String[] loadedColors = loadStrings("colors.txt");
   int numColors = loadedColors.length;
-  
 
   colors = new HColorPool();
-    //.add(#FFFFFF) 
-    //.add(#0C3654, 2)
-    //.add(#10B36B, 2) 
-    //;	
-    
-   for (int i=0; i<numColors; i++) {
-    colors.add(unhex(loadedColors[i])| 0xff000000);
+
+  //Store colors and weights into color pool
+  for (int i=0; i<numColors; i++) {
+    String[] colorWeight = ( split((loadedColors[i]), ","));
+    colors.add(unhex(colorWeight[0]) | 0xff000000, int(colorWeight[1])); // hex part is adding alpha bits
   }
 
-  layout = new HGridLayout()
-    .startX(0)
-    .startY(0)
-    .spacing(cellSize, cellSize)
-    .cols(cols)
+  layout = new HHexLayout()
+    .offsetX(0)
+    .offsetX(0)
+    .spacing(cellSize)
+    //.cols(cols)
     ;
   //nested layout for diamond offset
-  layout2 =  new HGridLayout()
-    .startX(cellSize/2)
-    .startY(cellSize/2)
-    .spacing(cellSize, cellSize)
-    .cols(cols)
-    ;
+  //layout2 =  new HGridLayout()
+  //  .startX(cellSize/2)
+  //  .startY(cellSize/2)
+  //  .spacing(cellSize, cellSize)
+  //  .cols(cols)
+  //  ;
 
-  pool = new HDrawablePool(elements+cols); // big ones
+  pool = new HDrawablePool(elements); 
 
   for (int i=0; i<numFiles; i++) {
     pool.autoAddToStage().add(new HShape (loadedFiles[i]));
   }
 
-  pool.layout (layout)
+  pool.layout ( layout )
 
     .onCreate (
     new HCallback() {
@@ -95,48 +100,49 @@ void setup() {
       HShape d = (HShape) obj;
       d
         .enableStyle(false)
-        .noStroke()
-        .anchorAt(H.CENTER)
-        .size(cellSize)
-        //                                                .scale((int)random(2));
-        //                                                .rotate((int)random(4)*90)
-        ;
+        //.noStroke()
+        //.anchorAt(H.CENTER)
+        .size(int(random(3))*tileSize)
+        .rotate(int(random(2))*180);
+      //.size(tileSize)
+      ;
 
-      d.randomColors(colors.fillOnly());
+      //d.randomColors(colors.fillOnly());
+      d.randomColors(colors);
     }
   }
   )
-
-  .requestAll()
+  .shuffleRequestAll()
     ;
 
 
-  pool2 = new HDrawablePool(elements); // little ones
-  for (int i=0; i<numFiles; i++) {
-    pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
-  }
 
-  pool2.layout ( layout2 )
+  //  pool2 = new HDrawablePool(elements); 
+  //  for (int i=0; i<numFiles; i++) {
+  //    pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
+  //  }
 
-    .onCreate (
-    new HCallback() {
-    public void run(Object obj) {
-      HShape d = (HShape) obj;
-      d
-        .enableStyle(false)						
-        .noStroke()
-        .anchorAt(H.CENTER)
-        .size(cellSize)
-        //                                                .scale((int)random(2));
-        ;
+  //  pool2.layout ( layout2 )
 
-      d.randomColors(colors.fillOnly());
-    }
-  }
-  )
+  //    .onCreate (
+  //    new HCallback() {
+  //    public void run(Object obj) {
+  //      HShape d = (HShape) obj;
+  //      d
+  //        .enableStyle(false)						
+  //        .noStroke()
+  //        .anchorAt(H.CENTER)
+  //        .size(cellSize)
+  //        //                                                .scale((int)random(2));
+  //        ;
 
-  .requestAll()
-    ;
+  //      d.randomColors(colors.fillOnly());
+  //    }
+  //  }
+  //  )
+
+  //  .requestAll()
+  //    ;
 }
 
 //catch window resize
@@ -148,22 +154,25 @@ void pre() {
     ws = "Size = " +w + " x " + h + " pixels";
     // Do what you need to do here
 
-    cellSize = width/(cols-1);
+    //cellSize = width/(cols-1);
 
-    layout.startX(0).startY(0)
-      .spacing(cellSize, cellSize)
-      .cols(cols+1)
+    //layout.startX(0).startY(0)
+    //  .spacing(cellSize, cellSize)
+    //  .cols(cols+1)
+    //  ;
+    layout.offsetX(0)
+      .offsetX(0)
+      .spacing(cellSize)
       ;
     //nested layout for diamond offset
-    layout2
-      .startX(cellSize/2)
-      .startY(cellSize/2)
-      .spacing(cellSize, cellSize)
-      .cols(cols)
-      ;
+    //layout2
+    //  .startX(cellSize/2)
+    //  .startY(cellSize/2)
+    //  .spacing(cellSize, cellSize)
+    //  .cols(cols)
+    //  ;
 
     resetPools();
-
   }
 }
 
@@ -213,12 +222,20 @@ void saveVector() {
 
 void resetPools() {
 
-  pool.drain();
-  pool2.drain();
-  layout.resetIndex();
-  layout2.resetIndex();
-  pool.shuffleRequestAll();
-  pool2.shuffleRequestAll();
+  layout = new HHexLayout()
+    .offsetX(0)
+    .offsetX(0)
+    .spacing(cellSize)
+    //.cols(cols)
+    ;
 
-  H.drawStage();
+  pool.drain();
+  pool.layout(layout);
+  ////pool2.drain();
+  //layout.resetIndex();
+  ////layout2.resetIndex();
+  pool.shuffleRequestAll();
+  ////pool2.shuffleRequestAll();
+
+  //H.drawStage();
 }
