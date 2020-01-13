@@ -26,8 +26,9 @@ HHexLayout  layout;
 HGridLayout  layout2;
 
 int cols =40;
-int cellSize=20;
-int tileSize= 35;
+int cellSize=40;
+int tileSize= int(cellSize*1.8);
+//int tileSize= 70;
 int elements = 128; //number of elements per shape pool
 
 int numFiles;
@@ -45,7 +46,8 @@ void setup() {
   h = height;
   registerMethod("pre", this); //register pre to run before draw
 
-  H.init(this);
+  H.init(this).background(#FFFFFF);
+
   smooth();
 
   setupUI(); // set up CP5 UI
@@ -85,6 +87,9 @@ void setup() {
   //  .spacing(cellSize, cellSize)
   //  .cols(cols)
   //  ;
+  
+  //Hacky implementation of size weighting
+  final int[] sizePool = new int[]{0,0,0,0,0,1,1,2,2};
 
   pool = new HDrawablePool(elements); 
 
@@ -101,14 +106,13 @@ void setup() {
       d
         .enableStyle(false)
         //.noStroke()
-        //.anchorAt(H.CENTER)
-        .size(int(random(3))*tileSize)
+        .anchorAt(H.CENTER)
+        .size(sizePool[(int)random(0, sizePool.length)]*tileSize)
         .rotate(int(random(2))*180);
-      //.size(tileSize)
       ;
 
-      //d.randomColors(colors.fillOnly());
-      d.randomColors(colors);
+      d.randomColors(colors.fillOnly());
+      //d.randomColors(colors);
     }
   }
   )
