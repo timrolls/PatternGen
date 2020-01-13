@@ -88,8 +88,8 @@ void setup() {
   //  .cols(cols)
   //  ;
   
-  //Hacky implementation of size weighting
-  final int[] sizePool = new int[]{0,0,0,0,0,1,1,2,2};
+  //Hacky implementation of size weighting - needs final for some reason
+  final int[] sizePool = new int[]{0,0,0,0,0,1,1,2};
 
   pool = new HDrawablePool(elements); 
 
