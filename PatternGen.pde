@@ -30,6 +30,7 @@ int cellSize=40;
 int tileSize= int(cellSize*1.8);
 //int tileSize= 70;
 int elements = 128; //number of elements per shape pool
+int elementScale =2;
 
 int numFiles;
 String shortPath = "data";
@@ -80,16 +81,92 @@ void setup() {
     .spacing(cellSize)
     //.cols(cols)
     ;
-  //nested layout for diamond offset
-  //layout2 =  new HGridLayout()
-  //  .startX(cellSize/2)
-  //  .startY(cellSize/2)
-  //  .spacing(cellSize, cellSize)
-  //  .cols(cols)
-  //  ;
-  
+
+  createShapePool();
+}
+
+//catch window resize
+void pre() {
+  if (w != width || h != height) {
+    // Sketch window has resized
+    w = width;
+    h = height;
+    ws = "Size = " +w + " x " + h + " pixels";
+    // Do what you need to do here
+
+    layout.offsetX(0)
+      .offsetX(0)
+      .spacing(cellSize)
+      ;
+
+    resetPools();
+  }
+}
+
+void draw() {
+  H.background(255);
+  H.drawStage();
+}
+
+
+
+void keyPressed() {
+  // +        = redraw() advances 1 iteration 
+  // r        = render to PDF
+
+  if (key == '+') {
+    if (paused) {
+      loop();
+      paused = false;
+    } else {
+      noLoop();
+      paused = true;
+    }
+  }
+
+  if (key == 's') {
+    record = true;
+    saveVector();
+    H.drawStage();
+    saveFrame("png/render_####.png");
+  }
+
+  if (key == ' ') {
+    H.clearStage();
+    resetPools();
+  }
+}
+
+
+void saveVector() {
+  PGraphics tmp = null;
+  tmp = beginRecord(PDF, "pdf/render_#####.pdf");
+
+  if (tmp == null) {
+    H.drawStage();
+  } else {
+    H.stage().paintAll(tmp, false, 1); // PGraphics, uses3D, alpha
+  }
+
+  endRecord();
+}
+
+void resetPools() {
+
+  layout = new HHexLayout()
+    .offsetX(0)
+    .offsetX(0)
+    .spacing(cellSize)
+    ;
+
+  pool.drain();
+  pool.layout(layout);
+  pool.shuffleRequestAll();
+}
+
+void createShapePool() {
   //Hacky implementation of size weighting - needs final for some reason
-  final int[] sizePool = new int[]{0,0,0,0,0,1,1,2};
+  final int[] sizePool = new int[]{0, 0, 0, 0, 0, 1, 1, 2};
 
   pool = new HDrawablePool(elements); 
 
@@ -118,128 +195,4 @@ void setup() {
   )
   .shuffleRequestAll()
     ;
-
-
-
-  //  pool2 = new HDrawablePool(elements); 
-  //  for (int i=0; i<numFiles; i++) {
-  //    pool2.autoAddToStage().add(new HShape (loadedFiles[i]));
-  //  }
-
-  //  pool2.layout ( layout2 )
-
-  //    .onCreate (
-  //    new HCallback() {
-  //    public void run(Object obj) {
-  //      HShape d = (HShape) obj;
-  //      d
-  //        .enableStyle(false)						
-  //        .noStroke()
-  //        .anchorAt(H.CENTER)
-  //        .size(cellSize)
-  //        //                                                .scale((int)random(2));
-  //        ;
-
-  //      d.randomColors(colors.fillOnly());
-  //    }
-  //  }
-  //  )
-
-  //  .requestAll()
-  //    ;
-}
-
-//catch window resize
-void pre() {
-  if (w != width || h != height) {
-    // Sketch window has resized
-    w = width;
-    h = height;
-    ws = "Size = " +w + " x " + h + " pixels";
-    // Do what you need to do here
-
-    //cellSize = width/(cols-1);
-
-    //layout.startX(0).startY(0)
-    //  .spacing(cellSize, cellSize)
-    //  .cols(cols+1)
-    //  ;
-    layout.offsetX(0)
-      .offsetX(0)
-      .spacing(cellSize)
-      ;
-    //nested layout for diamond offset
-    //layout2
-    //  .startX(cellSize/2)
-    //  .startY(cellSize/2)
-    //  .spacing(cellSize, cellSize)
-    //  .cols(cols)
-    //  ;
-
-    resetPools();
-  }
-}
-
-void draw() {
-  H.drawStage();
-}
-
-// +        = redraw() advances 1 iteration 
-// r        = render to PDF
-
-void keyPressed() {
-  if (key == '+') {
-    if (paused) {
-      loop();
-      paused = false;
-    } else {
-      noLoop();
-      paused = true;
-    }
-  }
-
-  if (key == 's') {
-    record = true;
-    saveVector();
-    H.drawStage();
-    saveFrame("png/render_####.png");
-  }
-
-  if (key == ' ') {
-    resetPools();
-  }
-}
-
-
-void saveVector() {
-  PGraphics tmp = null;
-  tmp = beginRecord(PDF, "pdf/render_#####.pdf");
-
-  if (tmp == null) {
-    H.drawStage();
-  } else {
-    H.stage().paintAll(tmp, false, 1); // PGraphics, uses3D, alpha
-  }
-
-  endRecord();
-}
-
-void resetPools() {
-
-  layout = new HHexLayout()
-    .offsetX(0)
-    .offsetX(0)
-    .spacing(cellSize)
-    //.cols(cols)
-    ;
-
-  pool.drain();
-  pool.layout(layout);
-  ////pool2.drain();
-  //layout.resetIndex();
-  ////layout2.resetIndex();
-  pool.shuffleRequestAll();
-  ////pool2.shuffleRequestAll();
-
-  //H.drawStage();
 }
